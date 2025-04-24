@@ -3,7 +3,9 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout 
 from django.http import HttpResponseRedirect, HttpResponse
-from accounts.models import Profile
+from accounts.models import Profile, Cart, CartItems
+from products.models import Product, SizeVariant
+
 
 # Create your views here.
 def login_page(request):
@@ -61,3 +63,39 @@ def activate_email(request,email_token):
         return redirect('/')
     except Exception as e:
         return HttpResponse('Invalid Email token')
+    
+
+def add_to_cart(request, uid):
+    variant = request.GET.get('variant')
+        
+    product = Product.objects.get(uid = uid)
+    user = request.user
+    cart, _ = Cart.objects.get_or_create(user = user, is_paid =False) 
+
+    cart_items = CartItems.objects.create(cart = cart, product = product, )
+    if variant:
+        variant = request.GET.get('variant')
+        size_variant = SizeVariant.objects.get(size_name = variant)
+        cart_items.size_variant = size_variant
+        cart_items.save()
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+def remove_cart(request, cart_item_uid):
+    try:
+        cart_item = CartItems.objects.get(uid = cart_item_uid)
+        cart_item.delete()
+    except Exception as e:
+        print(e)
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+
+
+def cart(request):
+    cart = Cart.objects.filter(is_paid=False, user=request.user).first()
+    cart_items = cart.cart_items.all() if cart else []
+    return render(request, 'accounts/cart.html', {'cart': cart, 'cart_items': cart_items})
+
+# def cart(request):
+#     context  = {'cart': Cart.objects.filter(is_paid = False, user = request.user)}
+#     return render(request,'accounts/cart.html', context)
+
