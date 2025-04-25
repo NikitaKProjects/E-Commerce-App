@@ -1,11 +1,12 @@
 from django.shortcuts import render, redirect
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout 
 from django.http import HttpResponseRedirect, HttpResponse
 from accounts.models import Profile, Cart, CartItems, Coupon
 from products.models import Product, SizeVariant
-
+import razorpay
 
 # Create your views here.
 def login_page(request):
@@ -94,6 +95,8 @@ def remove_cart(request, cart_item_uid):
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 
+
+
 def cart(request):
     cart_obj = Cart.objects.filter(is_paid=False, user=request.user).first()
     
@@ -123,11 +126,20 @@ def cart(request):
         
         cart_obj.coupon = coupon_obj[0]
         cart_obj.save()
+
+
+
         messages.success(request, 'Coupon Applied.')
         return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
-    # Pass both cart and cart_items in context
-    context = {'cart': cart_obj, 'cart_items': cart_obj.cart_items.all()}
+    client = razorpay.Client(auth = (settings.KEY, settings.SECRET))
+    payment = client.order.create({'amount': cart_obj.get_cart_total()*100, 'currency' : 'INR', 'payment_capture': 1}) 
+    cart_obj.razor_pay_order_id = payment['id']
+    cart_obj.save()
+    print("*****************************************")
+    print(payment)
+    print("*****************************************")
+    context = {'cart': cart_obj, 'cart_items': cart_obj.cart_items.all(), 'payment' : payment}
     return render(request, 'accounts/cart.html', context)
 
 def remove_coupon(request, cart_id):
@@ -136,3 +148,12 @@ def remove_coupon(request, cart_id):
     cart.save()
     messages.success(request, 'Coupon Removed.')
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+
+def success(request):
+    order_id = request.GET.get('order_id')
+    cart = Cart.objects.get(razor_pay_order_id = order_id)
+    cart.is_paid = True
+    cart.save()
+    return HttpResponse('Payment Success')
+
