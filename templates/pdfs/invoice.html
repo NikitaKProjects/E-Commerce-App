@@ -1,0 +1,65 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+   <title>Invoice Receipt</title>
+</head>
+<body>
+   <table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+         <td colspan="2" align="center"><img src="logo.png" width="150" alt="Logo" /></td>
+      </tr>
+      <tr>
+         <td colspan="2" align="center"><h2>Invoice Receipt</h2></td>
+      </tr>
+      <tr>
+         <td colspan="2" align="center">Invoice Number: {{data.id}}</td>
+      </tr>
+      <tr>
+         <td width="49%">
+            <h3>Service Provider</h3>
+            Django Ecommerce<br />
+            1001A, The Capital B Wing, 10th Floor,<br />
+            Bandra Kurla Complex, Bandra (E), Mumbai<br />
+            Contact: 9876543210
+         </td>
+         <td width="49%" align="right">
+            Order Date: {{data.order_date}}<br />
+            <h3>Customer Name</h3>
+            {{data.name}}<br />
+            {{data.address}}
+         </td>
+      </tr>
+      <tr>
+         <td colspan="2">
+            <table width="100%" border="1" cellspacing="0" cellpadding="8">
+               <tr>
+                  <th>Description</th>
+                  <th>Bill Amount</th>
+                  <th>Payment Method</th>
+               </tr>
+               <tr>
+                  <td align="center">{{data.description}}</td>
+                  <td align="center">{{data.amount}}</td>
+                  <td align="center">{{data.pay_method}}</td>
+               </tr>
+            </table>
+         </td>
+      </tr>
+      <tr>
+         <td colspan="2">
+            <strong>Please Note:</strong><br />
+            Dear Consumer, the bill payment will reflect in next 48 hours in your account.
+            Please contact our customer support for any queries regarding this order.
+         </td>
+      </tr>
+      <tr>
+         <td colspan="2" align="center">
+            <strong>Thank you for using our service</strong><br />
+            (This is a computer-generated receipt and does not require physical signature.)
+         </td>
+      </tr>
+   </table>
+</body>
+</html>
