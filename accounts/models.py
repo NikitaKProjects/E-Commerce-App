@@ -5,7 +5,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 import uuid
 from base.emails import send_account_activation_email
-from products.models import Product, ColorVariant,SizeVariant
+from products.models import Product, ColorVariant, SizeVariant, Coupon
 
 class Profile(BaseModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
@@ -19,6 +19,7 @@ class Profile(BaseModel):
 
 class Cart(BaseModel):
     user = models.ForeignKey(User,on_delete = models.CASCADE, related_name = 'carts')
+    coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null = True, blank = True)
     is_paid = models.BooleanField(default = False)
 
     def get_cart_total(self):
@@ -32,6 +33,9 @@ class Cart(BaseModel):
             if cart_item.size_variant:
                 size_variant_price = cart_item.size_variant.price
                 price.append(size_variant_price)
+        if self.coupon:
+            if self.coupon.minimum_amount < sum(price):
+                return sum(price)-self.coupon.discount_price
 
         return sum(price)
 
